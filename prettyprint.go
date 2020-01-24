@@ -12,7 +12,7 @@ const (
 )
 
 type PrinterOptions struct {
-	countFunction bool
+	CountFunction bool
 }
 
 type Printer struct {
@@ -23,7 +23,7 @@ type Printer struct {
 func NewPrinter(o PrinterOptions) *Printer {
 	p := new(Printer)
 
-	if o.countFunction == false {
+	if o.CountFunction == false {
 		p.countFunction()
 	}
 
@@ -34,15 +34,14 @@ func (p *Printer) Print(i interface{}) {
 	defer p.countPrints()
 
 	var (
-		pc, _, line, _  = runtime.Caller(1)
-		funcNameCounter = 0
+		pc, _, line, _ = runtime.Caller(1)
 	)
 
 	// only display the function name once
-	if funcNameCounter == 0 {
+	if p.funcNameCounter == 0 {
 		fs := runtime.FuncForPC(pc)
 		fmt.Printf("----------%v:----------\n", fs.Name())
-		defer p.countFunction()
+		p.countFunction()
 	}
 
 	switch v := i.(type) {
