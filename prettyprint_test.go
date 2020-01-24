@@ -12,10 +12,11 @@ type TestStruct1 struct {
 }
 
 func TestPrettyPrint(t *testing.T) {
-	printer := NewPrinter()
-	printer = testPrettyPrintInt(t, printer)
-	printer = testPrettyPrintPointerStruct(t, printer)
-	printer = testPrettyPrintStruct(t, printer)
+	p := NewPrinter(PrinterOptions{countFunction: false})
+
+	p = testPrettyPrintInt(t, p)
+	p = testPrettyPrintPointerStruct(t, p)
+	p = testPrettyPrintStruct(t, p)
 }
 
 func testPrettyPrintInt(t *testing.T, p *Printer) *Printer {
@@ -23,8 +24,7 @@ func testPrettyPrintInt(t *testing.T, p *Printer) *Printer {
 	r, w, _ := os.Pipe()
 	os.Stdout = w
 
-	printer := NewPrinter()
-	printer.Print(12)
+	p.Print(12)
 
 	w.Close()
 	out, _ := ioutil.ReadAll(r)
@@ -35,7 +35,7 @@ func testPrettyPrintInt(t *testing.T, p *Printer) *Printer {
 		t.Errorf("Expected %v, actual %v", expected, string(out))
 	}
 
-	return printer
+	return p
 }
 
 func testPrettyPrintPointerStruct(t *testing.T, p *Printer) *Printer {
@@ -74,4 +74,26 @@ func testPrettyPrintStruct(t *testing.T, p *Printer) *Printer {
 	}
 
 	return p
+}
+
+func TestFuncCounter(t *testing.T) {
+	p := NewPrinter(PrinterOptions{countFunction: true})
+	testFunction := func() {
+		p.Print("var")
+	}
+
+	stdOut := os.Stdout
+	r, w, _ := os.Pipe()
+	os.Stdout = w
+
+	testFunction()
+
+	w.Close()
+	out, _ := ioutil.ReadAll(r)
+	os.Stdout = stdOut
+
+	expected := "prettyprint.TestFuncCounter.func1 2: Type: prettyprint.TestStruct1, Value: {1 hey}"
+	if expected != string(out) {
+		t.Errorf("Expected %v, actual %v", expected, string(out))
+	}
 }

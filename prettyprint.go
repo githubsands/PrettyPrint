@@ -11,29 +11,61 @@ const (
 	printedDynamic = "%v: Type: %v, Value: %v, Line: %v\n"
 )
 
-type Printer struct {
-	counter int
+type PrinterOptions struct {
+	countFunction bool
 }
 
-func NewPrinter() *Printer {
-	return &Printer{counter: 0}
+type Printer struct {
+	printCounter    int
+	funcNameCounter int
+}
+
+func NewPrinter(o PrinterOptions) *Printer {
+	p := new(Printer)
+
+	if o.countFunction == false {
+		p.countFunction()
+	}
+
+	return p
 }
 
 func (p *Printer) Print(i interface{}) {
-	defer p.count()
+	defer p.countPrints()
 
-	_, _, line, _ := runtime.Caller(1)
+	var (
+		pc, _, line, _  = runtime.Caller(1)
+		funcNameCounter = 0
+	)
+
+	// only display the function name once
+	if funcNameCounter == 0 {
+		fs := runtime.FuncForPC(pc)
+		fmt.Printf("----------%v:----------\n", fs.Name())
+		defer p.countFunction()
+	}
 
 	switch v := i.(type) {
 	case int, int8, int16, int64, uint, uint16, uint32, uintptr, string, bool, byte, rune, float32, float64:
-		fmt.Printf(printed, p.counter, v, v, line)
+		fmt.Printf(printed, p.printCounter, v, v, line)
 	default:
-		fmt.Printf(printedDynamic, p.counter, reflect.TypeOf(i).String(), reflect.ValueOf(i), line)
+		fmt.Printf(printedDynamic, p.printCounter, reflect.TypeOf(i).String(), reflect.ValueOf(i), line)
 	}
 
 	return
 }
 
-func (p *Printer) count() {
-	p.counter++
+// countPrints prints how many times print has been called
+func (p *Printer) countPrints() {
+	p.printCounter++
+}
+
+// countFuncs prints the function where this printer was called.
+func (p *Printer) countFunction() {
+	// funcNameCounter only needs to count once, this program does not need to know how many times the func is called.  Just if its called.
+	if p.funcNameCounter > 0 {
+		return
+	}
+
+	p.funcNameCounter++
 }
