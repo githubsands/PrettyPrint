@@ -30,7 +30,26 @@ func NewPrinter(o PrinterOptions) *Printer {
 	return p
 }
 
-func (p *Printer) Print(i interface{}) {
+func (p *Printer) PrintCheck() {
+	defer p.countPrints()
+
+	var (
+		pc, _, line, _ = runtime.Caller(1)
+	)
+
+	// only display the function name once
+	if p.funcNameCounter == 0 {
+		fs := runtime.FuncForPC(pc)
+		fmt.Printf("----------%v:----------\n", fs.Name())
+		p.countFunction()
+	}
+
+	fmt.Printf("%v: Made it to %v", p.printCounter, line)
+
+	return
+}
+
+func (p *Printer) PrintVar(i interface{}) {
 	defer p.countPrints()
 
 	var (
