@@ -11,13 +11,19 @@ const (
 	printedDynamic = "%v: Type: %v, Value: %v, Line: %v\n"
 )
 
+type I interface {
+	Start()
+	PrintCheck()
+	PrintVar()
+}
+
 type PrinterOptions struct {
 	CountFunction bool
 }
 
 type Printer struct {
-	printCounter    int
-	funcNameCounter int
+	printCounter    *int
+	funcNameCounter *int
 }
 
 func NewPrinter(o PrinterOptions) *Printer {
@@ -27,7 +33,15 @@ func NewPrinter(o PrinterOptions) *Printer {
 		p.countFunction()
 	}
 
+	i, j := 0, 0
+	p.printCounter = &i
+	p.funcNameCounter = &j
+
 	return p
+}
+
+func (p *Printer) Start() {
+	fmt.Print("Starting the printer\n")
 }
 
 func (p *Printer) PrintCheck() {
@@ -38,7 +52,7 @@ func (p *Printer) PrintCheck() {
 	)
 
 	// only display the function name once
-	if p.funcNameCounter == 0 {
+	if *p.funcNameCounter == 0 {
 		fs := runtime.FuncForPC(pc)
 		fmt.Printf("----------%v:----------\n", fs.Name())
 		p.countFunction()
@@ -57,7 +71,7 @@ func (p *Printer) PrintVar(i interface{}) {
 	)
 
 	// only display the function name once
-	if p.funcNameCounter == 0 {
+	if *p.funcNameCounter == 0 {
 		fs := runtime.FuncForPC(pc)
 		fmt.Printf("----------%v:----------\n", fs.Name())
 		p.countFunction()
@@ -65,9 +79,9 @@ func (p *Printer) PrintVar(i interface{}) {
 
 	switch v := i.(type) {
 	case int, int8, int16, int64, uint, uint16, uint32, uintptr, string, bool, byte, rune, float32, float64:
-		fmt.Printf(printed, p.printCounter, v, v, line)
+		fmt.Printf(printed, *p.printCounter, v, v, line)
 	default:
-		fmt.Printf(printedDynamic, p.printCounter, reflect.TypeOf(i).String(), reflect.ValueOf(i), line)
+		fmt.Printf(printedDynamic, *p.printCounter, reflect.TypeOf(i).String(), reflect.ValueOf(i), line)
 	}
 
 	return
@@ -75,15 +89,15 @@ func (p *Printer) PrintVar(i interface{}) {
 
 // countPrints prints how many times print has been called
 func (p *Printer) countPrints() {
-	p.printCounter++
+	*p.printCounter++
 }
 
 // countFuncs prints the function where this printer was called.
 func (p *Printer) countFunction() {
 	// funcNameCounter only needs to count once, this program does not need to know how many times the func is called.  Just if its called.
-	if p.funcNameCounter > 0 {
+	if *p.funcNameCounter > 0 {
 		return
 	}
 
-	p.funcNameCounter++
+	*p.funcNameCounter++
 }
