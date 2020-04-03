@@ -1,5 +1,6 @@
 Using pretty printer:
 
+```golang
 import (
     prettyprint "github.com/githubsands/PrettyPrint"
 )
@@ -10,3 +11,4 @@ func init() {
 	printer := prettyprint.NewPrinter(prettyprint.PrinterOptions{CountFunction: true})
 	printer.Start()
 }
+```
