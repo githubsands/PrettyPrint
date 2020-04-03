@@ -7,8 +7,20 @@ import (
 
 var printer *prettyprint.Printer
 
-func init() {
+type Object struct {
+    Name string
+    Age int
+}
+
+func main() {
 	printer := prettyprint.NewPrinter(prettyprint.PrinterOptions{CountFunction: true})
 	printer.Start()
+	printer.PrintCheck()
+	
+	testObject := Object{Name: Github, Age: 12}
+	
+	printer.PrintVar(testObject)
+	
+	printer.PrintCheck()
 }
 ```
